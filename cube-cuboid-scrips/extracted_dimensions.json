@@ -1,0 +1,61 @@
+{
+  "root": {
+    "type": "object3D",
+    "dimensions": {
+      "width": 100.0,
+      "height": 100.0,
+      "depth": 100.0
+    },
+    "children": [
+      {
+        "id": "TOP_VIEW",
+        "type": "view",
+        "dimensions": {
+          "width": 100.0,
+          "depth": 100.0
+        }
+      },
+      {
+        "id": "FRONT_VIEW",
+        "type": "view",
+        "dimensions": {
+          "dim_1": 100.0
+        }
+      },
+      {
+        "id": "SIDE_VIEW",
+        "type": "view",
+        "dimensions": {
+          "depth": 100.0,
+          "height": 100.0
+        }
+      }
+    ]
+  },
+  "relationships": [
+    {
+      "type": "shares_dimension",
+      "dimension": "width",
+      "views": [
+        "TOP_VIEW",
+        "FRONT_VIEW"
+      ]
+    },
+    {
+      "type": "shares_dimension",
+      "dimension": "height",
+      "views": [
+        "FRONT_VIEW",
+        "SIDE_VIEW"
+      ]
+    },
+    {
+      "type": "shares_dimension",
+      "dimension": "depth",
+      "views": [
+        "TOP_VIEW",
+        "SIDE_VIEW"
+      ]
+    }
+  ]
+}
