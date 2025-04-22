@@ -1,5 +1,5 @@
-import pythoncom
-import win32com.client
+# import pythoncom
+# import win32com.client
 import threading
 import os
 import uuid
@@ -9,8 +9,10 @@ import time
 from flask import Flask, request, jsonify, render_template, send_file
 import json
 import io
+from flask_cors import CORS  # Add this import
 
 app = Flask(__name__)
+CORS(app)  # Add this line to enable CORS for all routes
 
 # Configuration - Adjust these for your environment
 TEMP_DIR = "D:\\solidworks_macros"
@@ -21,138 +23,138 @@ MACRO_TIMEOUT = 60  # seconds
 # Ensure temp directory exists
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-class SOLIDWORKSController:
-    def __init__(self):
-        self.sw_app = None
-        self.initialized = False
-        self.error = None
-        self.queue = Queue()
-        self.thread = None
-        self._start_controller()
+# class SOLIDWORKSController:
+#     def __init__(self):
+#         self.sw_app = None
+#         self.initialized = False
+#         self.error = None
+#         self.queue = Queue()
+#         self.thread = None
+#         self._start_controller()
 
-    def _start_controller(self):
-        """Start the SOLIDWORKS control thread"""
-        self.thread = threading.Thread(target=self._run, daemon=True)
-        self.thread.start()
+#     def _start_controller(self):
+#         """Start the SOLIDWORKS control thread"""
+#         self.thread = threading.Thread(target=self._run, daemon=True)
+#         self.thread.start()
 
-        # Wait for initialization to complete
-        start_time = time.time()
-        while not self.initialized and time.time() - start_time < STARTUP_TIMEOUT:
-            time.sleep(0.1)
+#         # Wait for initialization to complete
+#         start_time = time.time()
+#         while not self.initialized and time.time() - start_time < STARTUP_TIMEOUT:
+#             time.sleep(0.1)
 
-        if not self.initialized:
-            self.error = self.error or "SOLIDWORKS initialization timed out"
+#         if not self.initialized:
+#             self.error = self.error or "SOLIDWORKS initialization timed out"
 
-    def _run(self):
-        """Main thread function for SOLIDWORKS interaction"""
-        try:
-            pythoncom.CoInitialize()
+#     def _run(self):
+#         """Main thread function for SOLIDWORKS interaction"""
+#         try:
+#             pythoncom.CoInitialize()
             
-            # Try both version-specific and generic ProgIDs
-            prog_ids = [
-                f"SldWorks.Application.{SOLIDWORKS_VERSION}",
-                "SldWorks.Application"
-            ]
+#             # Try both version-specific and generic ProgIDs
+#             prog_ids = [
+#                 f"SldWorks.Application.{SOLIDWORKS_VERSION}",
+#                 "SldWorks.Application"
+#             ]
             
-            for prog_id in prog_ids:
-                try:
-                    print(f"Attempting to connect using ProgID: {prog_id}")
-                    self.sw_app = win32com.client.Dispatch(prog_id)
-                    self.sw_app.Visible = True
+#             for prog_id in prog_ids:
+#                 try:
+#                     print(f"Attempting to connect using ProgID: {prog_id}")
+#                     self.sw_app = win32com.client.Dispatch(prog_id)
+#                     self.sw_app.Visible = True
                     
-                    # Verify connection by getting version
-                    version = self.sw_app.RevisionNumber
-                    print(f"Connected to SOLIDWORKS version: {version}")
-                    self.initialized = True
-                    break
-                except Exception as e:
-                    print(f"Failed with {prog_id}: {str(e)}")
-                    continue
+#                     # Verify connection by getting version
+#                     version = self.sw_app.RevisionNumber
+#                     print(f"Connected to SOLIDWORKS version: {version}")
+#                     self.initialized = True
+#                     break
+#                 except Exception as e:
+#                     print(f"Failed with {prog_id}: {str(e)}")
+#                     continue
 
-            if not self.initialized:
-                self.error = "Failed to connect using all ProgID options"
-                return
+#             if not self.initialized:
+#                 self.error = "Failed to connect using all ProgID options"
+#                 return
 
-            # Process tasks from queue
-            while True:
-                task = self.queue.get()
-                try:
-                    task()
-                except Exception as e:
-                    print(f"Error executing task: {e}")
+#             # Process tasks from queue
+#             while True:
+#                 task = self.queue.get()
+#                 try:
+#                     task()
+#                 except Exception as e:
+#                     print(f"Error executing task: {e}")
 
-        except Exception as e:
-            self.error = f"SOLIDWORKS thread failed: {str(e)}"
-        finally:
-            if self.sw_app:
-                self.sw_app.ExitApp()
-            pythoncom.CoUninitialize()
+#         except Exception as e:
+#             self.error = f"SOLIDWORKS thread failed: {str(e)}"
+#         finally:
+#             if self.sw_app:
+#                 self.sw_app.ExitApp()
+#             pythoncom.CoUninitialize()
 
-    def execute_macro(self, vba_code):
-        """Execute VBA code in SOLIDWORKS"""
-        if not self.initialized:
-            raise Exception("SOLIDWORKS not initialized")
+#     def execute_macro(self, vba_code):
+#         """Execute VBA code in SOLIDWORKS"""
+#         if not self.initialized:
+#             raise Exception("SOLIDWORKS not initialized")
 
-        response_queue = Queue()
+#         response_queue = Queue()
         
-        def task():
-            try:
-                # Create properly formatted macro file
-                swp_content = f"""Attribute VB_Name = "RemoteMacro"
-Sub Main()
-    On Error Resume Next
-    {vba_code}
-    If Err.Number <> 0 Then
-        MsgBox "Macro error: " & Err.Description
-    End If
-End Sub
-"""
-                # Save to temporary file
-                macro_path = os.path.join(TEMP_DIR, f"macro_{uuid.uuid4().hex}.swp")
-                with open(macro_path, 'w', encoding='utf-8') as f:
-                    f.write(swp_content)
+#         def task():
+#             try:
+#                 # Create properly formatted macro file
+#                 swp_content = f"""Attribute VB_Name = "RemoteMacro"
+# Sub Main()
+#     On Error Resume Next
+#     {vba_code}
+#     If Err.Number <> 0 Then
+#         MsgBox "Macro error: " & Err.Description
+#     End If
+# End Sub
+# """
+#                 # Save to temporary file
+#                 macro_path = os.path.join(TEMP_DIR, f"macro_{uuid.uuid4().hex}.swp")
+#                 with open(macro_path, 'w', encoding='utf-8') as f:
+#                     f.write(swp_content)
 
-                # Execute macro
-                result = self.sw_app.RunMacro(
-                    macro_path.replace('/', '\\'), 
-                    "RemoteMacro", 
-                    "Main"
-                )
-                response_queue.put({"status": "success", "result": result})
-            except Exception as e:
-                response_queue.put({"status": "error", "message": str(e)})
-            finally:
-                # Clean up macro file
-                try:
-                    os.remove(macro_path)
-                except:
-                    pass
+#                 # Execute macro
+#                 result = self.sw_app.RunMacro(
+#                     macro_path.replace('/', '\\'), 
+#                     "RemoteMacro", 
+#                     "Main"
+#                 )
+#                 response_queue.put({"status": "success", "result": result})
+#             except Exception as e:
+#                 response_queue.put({"status": "error", "message": str(e)})
+#             finally:
+#                 # Clean up macro file
+#                 try:
+#                     os.remove(macro_path)
+#                 except:
+#                     pass
 
-        self.queue.put(task)
-        return response_queue.get(timeout=MACRO_TIMEOUT)
+#         self.queue.put(task)
+#         return response_queue.get(timeout=MACRO_TIMEOUT)
 
 # Initialize SOLIDWORKS controller when module loads
-print("Initializing SOLIDWORKS controller...")
-sw_controller = SOLIDWORKSController()
+# print("Initializing SOLIDWORKS controller...")
+# sw_controller = SOLIDWORKSController()
 
-@app.route('/execute-vba', methods=['POST'])
-def execute_vba():
-    if not sw_controller.initialized:
-        return jsonify({
-            "status": "error",
-            "message": "SOLIDWORKS not available",
-            "detail": sw_controller.error
-        }), 500
+# @app.route('/execute-vba', methods=['POST'])
+# def execute_vba():
+#     if not sw_controller.initialized:
+#         return jsonify({
+#             "status": "error",
+#             "message": "SOLIDWORKS not available",
+#             "detail": sw_controller.error
+#         }), 500
 
-    try:
-        vba_code = request.json.get('vba_code')
-        if not vba_code:
-            return jsonify({"status": "error", "message": "No VBA code provided"}), 400
+#     try:
+#         vba_code = request.json.get('vba_code')
+#         if not vba_code:
+#             return jsonify({"status": "error", "message": "No VBA code provided"}), 400
         
-        result = sw_controller.execute_macro(vba_code)
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+#         result = sw_controller.execute_macro(vba_code)
+#         return jsonify(result)
+#     except Exception as e:
+#         return jsonify({"status": "error", "message": str(e)}), 500
     
 def generate_vba_from_json(data):
     """
@@ -292,9 +294,6 @@ def generate_vba():
             "status": "error",
             "message": str(e)
         }), 500
-    
-
-
 
 @app.route('/convert', methods=['POST'])
 def convert_json_to_vba():
@@ -332,7 +331,10 @@ def convert_json_to_vba_clean():
         vba_code = generate_vba_from_json(data, operation_mode)
         
         # Return the raw VBA code without JSON wrapping
-        return vba_code, 200, {'Content-Type': 'text/plain'}
+        return vba_code, 200, {
+            'Content-Type': 'text/plain',
+            'Access-Control-Allow-Origin': '*'  # Explicit CORS header for this endpoint
+        }
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -485,9 +487,4 @@ def process_operation(operation):
     return vba_lines
 
 if __name__ == '__main__':
-    if not sw_controller.initialized:
-        print(f"Failed to initialize SOLIDWORKS: {sw_controller.error}")
-    else:
-        print("SOLIDWORKS controller ready")
-    
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
