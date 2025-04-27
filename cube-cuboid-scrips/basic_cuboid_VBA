@@ -1,0 +1,49 @@
+Option Explicit
+
+Dim swApp As SldWorks.SldWorks
+Dim swDoc As SldWorks.ModelDoc2
+Dim BoolStatus As Boolean
+Dim swSketchManager As SldWorks.SketchManager
+Dim swFeature As SldWorks.Feature
+
+Sub CreateCuboid()
+    ' Connect to SolidWorks
+    Set swApp = Application.SldWorks
+    
+    ' Get default part template
+    Dim defaultTemplate As String
+    defaultTemplate = swApp.GetUserPreferenceStringValue(swUserPreferenceStringValue_e.swDefaultTemplatePart)
+    
+    ' Create new part
+    Set swDoc = swApp.NewDocument(defaultTemplate, 0, 0, 0)
+    
+    ' Set up sketch manager
+    Set swSketchManager = swDoc.SketchManager
+    
+    ' Select Front Plane and create sketch
+    BoolStatus = swDoc.Extension.SelectByID2("Front Plane", "PLANE", 0, 0, 0, False, 0, Nothing, swSelectOption_e.swSelectOptionDefault)
+    swSketchManager.InsertSketch True
+    
+    ' Create centered rectangle (100mm x 60mm)
+    Dim vSketchLines As Variant
+    vSketchLines = swSketchManager.CreateCenterRectangle(0, 0, 0, 50, 30, 0) ' Half dimensions (50=100/2, 30=60/2)
+    
+    ' Exit sketch
+    swDoc.ClearSelection2 True
+    swSketchManager.InsertSketch True
+    
+    ' Select sketch for extrusion
+    BoolStatus = swDoc.Extension.SelectByID2("Sketch1", "SKETCH", 0, 0, 0, False, 0, Nothing, swSelectOption_e.swSelectOptionDefault)
+    
+    ' Extrude to 40mm depth
+    Set swFeature = swDoc.FeatureManager.FeatureExtrusion3( _
+        True, False, False, swEndConditions_e.swEndCondBlind, swEndConditions_e.swEndCondBlind, _
+        40, 0, False, False, False, False, 0, 0, False, False, False, False, _
+        True, True, True, swEndConditions_e.swEndCondBlind, 0, False)
+    
+    ' Clean up view
+    swDoc.ViewZoomtofit2
+    
+    MsgBox "Cuboid created successfully: 100mm × 60mm × 40mm", vbInformation, "Success"
+End Sub
+
