@@ -1,6 +1,6 @@
 # 2D-3D Modelling
 
-This project facilitates the conversion of 2D engineering sketches into 3D models. It leverages OpenCV for shape recognition, utilizes tries and graphs for entity relationships, and employs SOLIDWORKS with VBA scripts for 3D modelling. Developed as part of the TEB (MIT-101) coursework under the MEID Department at IIT Roorkee.([GitHub][1])
+This project facilitates the conversion of 2D engineering sketches into 3D models. It leverages OpenCV for shape recognition, utilizes tries and graphs for entity relationships, and employs SOLIDWORKS with VBA scripts for 3D modelling. Developed as part of the TEB (MIT-101) coursework under the MEID Department at IIT Roorkee.
 
 ## Features
 
