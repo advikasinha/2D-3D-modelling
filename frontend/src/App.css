@@ -34,7 +34,6 @@ body {
 
 .app-content {
   width: 100%;
-  max-width: 1200px;
 }
 
 .app-header {
@@ -140,7 +139,9 @@ body {
 }
 
 /* Buttons */
-.submit-button, .generate-vba-button, .download-vba-button {
+.submit-button,
+.generate-vba-button,
+.download-vba-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -200,7 +201,9 @@ button.disabled {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Results */
@@ -227,7 +230,8 @@ button.disabled {
   gap: 2rem;
 }
 
-.result-display, .vba-code-container {
+.result-display,
+.vba-code-container {
   background-color: #f8f9fa;
   padding: 1rem;
   border-radius: var(--border-radius);
@@ -236,7 +240,8 @@ button.disabled {
   max-height: 400px;
 }
 
-.result-display pre, .vba-code {
+.result-display pre,
+.vba-code {
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -281,16 +286,17 @@ button.disabled {
   .app-container {
     padding: 1rem;
   }
-  
+
   .app-header h1 {
     font-size: 2rem;
   }
-  
+
   .file-inputs {
     grid-template-columns: 1fr;
   }
-  
-  .result-header, .vba-header {
+
+  .result-header,
+  .vba-header {
     flex-direction: column;
     align-items: center;
     text-align: center;
